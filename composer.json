@@ -1,5 +1,5 @@
 {
-    "name": "nunomaduro/phpinsights",
+    "name": "gustavobava/nunomaduro-phpinsights",
     "description": "Instant PHP quality checks from your console.",
     "keywords": [
         "php",
