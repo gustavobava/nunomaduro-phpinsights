@@ -65,9 +65,6 @@ final class SniffDecorator implements Sniff, Insight, HasDetails, Fixable
      */
     public function process(File $file, $stackPtr)
     {
-        set_error_handler(static function (): bool {
-            throw new \RuntimeException();
-        }, E_NOTICE);
 
         if ($file instanceof InsightFile && $this->skipFilesFromIgnoreFiles($file)) {
             return;
