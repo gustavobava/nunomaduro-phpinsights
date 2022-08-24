@@ -5,32 +5,34 @@ declare(strict_types=1);
 namespace NunoMaduro\PhpInsights\Infrastructure\Repositories;
 
 use NunoMaduro\PhpInsights\Domain\Contracts\Repositories\FilesRepository;
+use SplFileInfo;
 use Symfony\Component\Finder\Finder;
 
 /**
  * @internal
+ *
+ * @see \Tests\Infrastructure\Repositories\LocalFilesRepositoryTest
  */
 final class LocalFilesRepository implements FilesRepository
 {
-    /**
-     * @var \Symfony\Component\Finder\Finder
-     */
-    private $finder;
+    public const DEFAULT_EXCLUDE = ['vendor', 'tests', 'Tests', 'test', 'Test'];
+
+    private Finder $finder;
 
     /**
      * @var array<\Symfony\Component\Finder\SplFileInfo>
      */
-    private $files;
+    private ?array $files = null;
 
     /**
      * @var array<mixed>
      */
-    private $fileList;
+    private ?array $fileList = null;
 
     /**
      * @var array<string>
      */
-    private $directoryList;
+    private ?array $directoryList = null;
 
     public function __construct(Finder $finder)
     {
@@ -61,7 +63,7 @@ final class LocalFilesRepository implements FilesRepository
                 $this->fileList['basename'][] = $pathInfo['basename'];
                 $this->fileList['full_path'][] = $pathInfo['dirname'] . DIRECTORY_SEPARATOR . $pathInfo['basename'];
             } else {
-                $this->directoryList[] = $pathInfo['dirname'] . DIRECTORY_SEPARATOR . $pathInfo['basename'];
+                $this->directoryList[] = rtrim($pathInfo['dirname'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $pathInfo['basename'];
             }
         }
 
@@ -76,17 +78,17 @@ final class LocalFilesRepository implements FilesRepository
     /**
      * @param array<string> $exclude
      *
-     * @return array<\Symfony\Component\Finder\SplFileInfo>
+     * @return array<string, \Symfony\Component\Finder\SplFileInfo>
      */
     private function getDirectoryFiles(array $exclude = []): array
     {
         $this->finder = Finder::create()
             ->files()
             ->name(['*.php'])
-            ->exclude(['vendor', 'tests', 'Tests', 'test', 'Test'])
+            ->exclude(self::DEFAULT_EXCLUDE)
             ->notName(['*.blade.php'])
             ->ignoreUnreadableDirs()
-            ->in($this->directoryList)
+            ->in($this->directoryList ?? [])
             ->notPath($exclude);
 
         foreach ($exclude as $value) {
@@ -99,16 +101,18 @@ final class LocalFilesRepository implements FilesRepository
     }
 
     /**
-     * @return array<\Symfony\Component\Finder\SplFileInfo>
+     * @return array<string, \Symfony\Component\Finder\SplFileInfo>
      */
     private function getSingleFiles(): array
     {
         $this->finder = Finder::create()
-            ->in($this->fileList['dirname'])
-            ->name($this->fileList['basename'])
-            ->filter(function (\SplFileInfo $file): bool {
-                return \in_array($file->getPathname(), $this->fileList['full_path'], true);
-            });
+            ->in($this->fileList['dirname'] ?? [])
+            ->name($this->fileList['basename'] ?? '')
+            ->filter(fn (SplFileInfo $file): bool => in_array(
+                $file->getPathname(),
+                $this->fileList['full_path'] ?? '',
+                true
+            ));
 
         return $this->getFilesList();
     }

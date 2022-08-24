@@ -32,6 +32,7 @@ return [
     */
 
     'preset' => 'laravel',
+
     /*
     |--------------------------------------------------------------------------
     | IDE
@@ -51,6 +52,7 @@ return [
     */
 
     'ide' => null,
+
     /*
     |--------------------------------------------------------------------------
     | Configuration
@@ -109,5 +111,18 @@ return [
 //        'min-style' => 0,
 //        'disable-security-check' => false,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Threads
+    |--------------------------------------------------------------------------
+    |
+    | Here you may adjust how many threads (core) PHPInsights can use to perform
+    | the analyse. This is optional, don't provide it and the tool will guess
+    | the max core number available. This accept null value or integer > 0.
+    |
+    */
+
+    'threads' => null,
 
 ];

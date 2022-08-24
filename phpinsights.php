@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use NunoMaduro\PhpInsights\Domain\Insights\CyclomaticComplexityIsHigh;
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenDefineGlobalConstants;
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenTraits;
 use NunoMaduro\PhpInsights\Domain\Sniffs\ForbiddenSetterSniff;
@@ -54,7 +55,7 @@ return [
 
     'config' => [
         LineLengthSniff::class => [
-            'lineLimit' => 80,
+            'lineLimit' => 120,
             'absoluteLineLimit' => 120,
             'ignoreComments' => true,
         ],
@@ -103,6 +104,11 @@ return [
                 'src/Domain/Insights/FixPerFileCollector.php',
             ],
         ],
+        CyclomaticComplexityIsHigh::class => [
+            'exclude' => [
+                'src/Domain/Analyser.php',
+            ],
+        ],
     ],
 
     /*
@@ -118,7 +124,7 @@ return [
 
     'requirements' => [
         'min-quality' => 90.0,
-        'min-architecture' => 80.0,
-        'min-style' => 97.8,
+        'min-architecture' => 85.0,
+        'min-style' => 98.0,
     ],
 ];

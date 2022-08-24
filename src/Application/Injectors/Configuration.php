@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace NunoMaduro\PhpInsights\Application\Injectors;
 
 use NunoMaduro\PhpInsights\Application\ConfigResolver;
+use NunoMaduro\PhpInsights\Application\Console\Commands\InternalProcessorCommand;
 use NunoMaduro\PhpInsights\Application\Console\Definitions\DefinitionBinder;
+use NunoMaduro\PhpInsights\Domain\Configuration as DomainConfiguration;
+use NunoMaduro\PhpInsights\Domain\Container;
+use NunoMaduro\PhpInsights\Domain\Exceptions\InvalidConfiguration;
+use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
  * @internal
+ *
+ * @see \Tests\Domain\ConfigurationTest
  */
 final class Configuration
 {
@@ -21,8 +29,15 @@ final class Configuration
     public function __invoke(): array
     {
         return [
-            \NunoMaduro\PhpInsights\Domain\Configuration::class => static function (): \NunoMaduro\PhpInsights\Domain\Configuration {
+            DomainConfiguration::class => static function (): DomainConfiguration {
                 $input = new ArgvInput();
+                if (
+                    $input->getFirstArgument() === InternalProcessorCommand::NAME &&
+                    Container::make()->get(CacheInterface::class)->has('current_configuration')
+                ) {
+                    // Use cache only for internal:processor, not other commands
+                    return Container::make()->get(CacheInterface::class)->get('current_configuration');
+                }
 
                 DefinitionBinder::bind($input);
                 $configPath = ConfigResolver::resolvePath($input);
@@ -36,7 +51,18 @@ final class Configuration
 
                 $config['fix'] = $fixOption || $input->getFirstArgument() === 'fix';
 
-                return ConfigResolver::resolve($config, $input);
+                try {
+                    return ConfigResolver::resolve($config, $input);
+                } catch (InvalidConfiguration $exception) {
+                    (new ConsoleOutput())->getErrorOutput()
+                        ->writeln([
+                            '',
+                            '  <bg=red;options=bold> Invalid configuration </>',
+                            '    <fg=red>•</> <options=bold>' . $exception->getMessage() . '</>',
+                            '',
+                        ]);
+                    die(1);
+                }
             },
         ];
     }

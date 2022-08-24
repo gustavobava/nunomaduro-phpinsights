@@ -1,9 +1,8 @@
 # Architecture
 
-The following insights are organised in differents metrics :
+The following insights are organised in different metrics :
 
 * `NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Classes` <Badge text="Architecture\Classes" type="warn" vertical="middle"/>
-* `NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Composer` <Badge text="Architecture\Composer" type="warn" vertical="middle"/>
 * `NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Constants` <Badge text="Architecture\Constants" type="warn" vertical="middle"/>
 * `NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Files` <Badge text="Architecture\Files" type="warn" vertical="middle"/>
 * `NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Functions` <Badge text="Architecture\Functions" type="warn" vertical="middle"/>
@@ -29,7 +28,7 @@ This sniff checks if the declaration of the class is correct
 
 **Insight Class**: `PHP_CodeSniffer\Standards\PSR1\Sniffs\Classes\ClassDeclarationSniff`
 
-## Class trait and interface length <Badge text="^1.0"/> <Badge text="Architecture\Classes" type="warn"/> <Badge text="configurable"/>
+## Class trait and interface length <Badge text=">=1.0 <2.0"/> <Badge text="Architecture\Classes" type="warn"/> <Badge text="configurable"/>
 
 This sniff checks the size of your classes/traits/interface
 
@@ -45,7 +44,7 @@ This sniff checks the size of your classes/traits/interface
 ```
 </details>
 
-## Method per class limit <Badge text="^1.0"/> <Badge text="Architecture\Classes" type="warn"/> <Badge text="configurable"/>
+## Method per class limit <Badge text=">=1.0 <2.0"/> <Badge text="Architecture\Classes" type="warn"/> <Badge text="configurable"/>
 
 This sniff checks if the number of methods per class is under a limit.
 
@@ -61,8 +60,7 @@ This sniff checks if the number of methods per class is under a limit.
 ```
 </details>
 
-
-## Property per class limit <Badge text="^1.0"/> <Badge text="Architecture\Classes" type="warn"/> <Badge text="configurable"/>
+## Property per class limit <Badge text=">=1.0 <2.0"/> <Badge text="Architecture\Classes" type="warn"/> <Badge text="configurable"/>
 
 This sniff checks if the number of properties per class is under a limit.
 
@@ -96,30 +94,6 @@ This sniff reports use of superfluous prefix or suffix "Abstract" for abstract c
 
 **Insight Class**: `SlevomatCodingStandard\Sniffs\Classes\SuperfluousAbstractClassNamingSniff`
 
-## `composer.json` must exist <Badge text="^1.0"/> <Badge text="Architecture\Composer" type="warn"/>
-
-This insight verifies there is `composer.json`.
-
-**Insight Class**: `NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerMustExist`
-
-## The name property in the `composer.json` <Badge text="^1.0"/> <Badge text="Architecture\Composer" type="warn"/>
-
-This insight checks if the name section in `composer.json` contains default values (e.g. `laravel/laravel` or `symfony/symfony`).
-
-**Insight Class**: `NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerMustContainName`
-
-## Composer.json must be valid <Badge text="^1.7"/> <Badge text="Architecture\Composer" type="warn"/>
-
-This insight checks if the `composer.json` is valid.
-
-**Insight Class**: `NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerMustBeValid`
-
-## Composer.lock must be fresh <Badge text="^1.7"/> <Badge text="Architecture\Composer" type="warn"/>
-
-This insight verifies that the `composer.lock` is not outdated.
-
-**Insight Class**: `NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerLockMustBeFresh`
-
 ## Define `globals` is prohibited <Badge text="^1.0"/> <Badge text="Architecture\Constants" type="warn"/>
 
 This insight disallows defining `globals`.
@@ -136,7 +110,7 @@ This sniff reports use of superfluous prefix or suffix "Exception" for exception
 
 This sniff checks the size of functions
 
-**Insight Class**: `ObjectCalisthenics\Sniffs\Files\FunctionLengthSniff`
+**Insight Class v1.0**: `ObjectCalisthenics\Sniffs\Files\FunctionLengthSniff`
 
 <details>
     <summary>Configuration</summary>
@@ -144,6 +118,18 @@ This sniff checks the size of functions
 ```php
 \ObjectCalisthenics\Sniffs\Files\FunctionLengthSniff::class => [
     'maxLength' => 20,
+]
+```
+</details>
+
+**Insight Class v2.0**: `SlevomatCodingStandard\Sniffs\Functions\FunctionLengthSniff`
+
+<details>
+    <summary>Configuration</summary>
+
+```php
+\SlevomatCodingStandard\Sniffs\Functions\FunctionLengthSniff::class => [
+    'maxLinesLength' => 20,
 ]
 ```
 </details>

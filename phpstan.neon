@@ -27,6 +27,7 @@ parameters:
         - '#NunoMaduro\\PhpInsights\\Application\\Console\\Formatters\\Checkstyle has an unused parameter \$input#'
         - '#In method "NunoMaduro\\PhpInsights\\Domain\\File::process", caught "Throwable" must be rethrown#'
         - '#In method "NunoMaduro\\PhpInsights\\Domain\\FileProcessors\\FixerFileProcessor::processFile", caught "Throwable" must be rethrown#'
+        - '#Empty catch block. If you are sure this is meant to be empty, please add a "// @ignoreException" comment in the catch block.#'
         - '#Casting to string something that#'
         - '#Instanceof between Illuminate\\Contracts\\Foundation\\Application and#'
         - '#Call to function method_exists\(\) with Symfony\\Component\\Console\\Formatter\\OutputFormatterStyle and #'
@@ -41,9 +42,19 @@ parameters:
             message: '#generic class ReflectionClass#'
             path: src/Domain/Reflection.php
         - '#NunoMaduro\\PhpInsights\\Domain\\File::addFixableError#'
+        - '#NunoMaduro\\PhpInsights\\Domain\\Differ#'
         - '#iterable type PhpCsFixer\\Tokenizer\\Tokens#'
         - '#Method NunoMaduro\\PhpInsights\\Application\\Console\\Definitions\\BaseDefinition::get\(\) is not final#'
-    autoload_files:
+        -
+            message: "#^Method Tests\\\\TestCase\\:\\:.*\\(\\) is not final, but since the containing class is abstract, it should be\\.$#"
+            count: 2
+            path: tests/TestCase.php
+        -
+            message: "#^Parameter \\#.* of class Composer\\\\Package\\\\Locker constructor expects .*$#"
+            count: 3
+            path: src/Domain/ComposerLoader.php
+        - "#^Parameter \\#1 \\$input of function array_flip expects array\\<int\\|string\\>, array\\<string, array\\|float\\|int\\|string\\> given\\.$#"
+    bootstrapFiles:
         - %rootDir%/../../squizlabs/php_codesniffer/autoload.php
     reportUnmatchedIgnoredErrors: false
 

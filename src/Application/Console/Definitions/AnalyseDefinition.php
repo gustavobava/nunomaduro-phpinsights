@@ -15,34 +15,35 @@ final class AnalyseDefinition extends BaseDefinition
     public static function get(): InputDefinition
     {
         $definition = parent::get();
+
         $definition->addOptions([
             new InputOption(
                 'min-quality',
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Minimal Quality level to reach without throw error',
-                0
+                '0'
             ),
             new InputOption(
                 'min-complexity',
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Minimal Complexity level to reach without throw error',
-                0
+                '0'
             ),
             new InputOption(
                 'min-architecture',
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Minimal Architecture level to reach without throw error',
-                0
+                '0'
             ),
             new InputOption(
                 'min-style',
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Minimal Style level to reach without throw error',
-                0
+                '0'
             ),
             new InputOption(
                 'disable-security-check',
@@ -54,7 +55,7 @@ final class AnalyseDefinition extends BaseDefinition
                 'format',
                 null,
                 InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-                'Format to output the result in [console, json, checkstyle]',
+                'Format to output the result in [console, json, checkstyle, codeclimate, github-action]',
                 ['console']
             ),
             new InputOption(
@@ -68,6 +69,12 @@ final class AnalyseDefinition extends BaseDefinition
                 null,
                 InputOption::VALUE_NONE,
                 'Enable auto-fix for fixable insights'
+            ),
+            new InputOption(
+                'flush-cache',
+                null,
+                InputOption::VALUE_NONE,
+                'Flush cache results before processing'
             ),
         ]);
 

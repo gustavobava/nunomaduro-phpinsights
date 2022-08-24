@@ -8,6 +8,7 @@ use NunoMaduro\PhpInsights\Application\Adapters\Drupal\Preset as DrupalPreset;
 use NunoMaduro\PhpInsights\Application\Adapters\Laravel\Preset as LaravelPreset;
 use NunoMaduro\PhpInsights\Application\Adapters\Magento2\Preset as Magento2Preset;
 use NunoMaduro\PhpInsights\Application\Adapters\Symfony\Preset as SymfonyPreset;
+use NunoMaduro\PhpInsights\Application\Adapters\WordPress\Preset as WordPressPreset;
 use NunoMaduro\PhpInsights\Application\Adapters\Yii\Preset as YiiPreset;
 use NunoMaduro\PhpInsights\Application\Console\Formatters\PathShortener;
 use NunoMaduro\PhpInsights\Domain\Configuration;
@@ -17,6 +18,8 @@ use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * @internal
+ *
+ * @see \Tests\Application\ConfigResolverTest
  */
 final class ConfigResolver
 {
@@ -26,15 +29,13 @@ final class ConfigResolver
 
     private const DEFAULT_PRESET = 'default';
 
-    /**
-     * @var array<class-string<Preset>>
-     */
-    private static $presets = [
+    private const PRESETS = [
         DrupalPreset::class,
         LaravelPreset::class,
         SymfonyPreset::class,
         YiiPreset::class,
         Magento2Preset::class,
+        WordPressPreset::class,
         DefaultPreset::class,
     ];
 
@@ -42,9 +43,6 @@ final class ConfigResolver
      * Merge the given config with the specified preset.
      *
      * @param array<string, string|array> $config
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     *
-     * @return Configuration
      */
     public static function resolve(array $config, InputInterface $input): Configuration
     {
@@ -56,9 +54,11 @@ final class ConfigResolver
         $preset = $config['preset'] ?? self::guess($composer);
 
         /** @var Preset $presetClass */
-        foreach (self::$presets as $presetClass) {
+        foreach (self::PRESETS as $presetClass) {
             if ($presetClass::getName() === $preset) {
-                $config = self::mergeConfig($presetClass::get($composer), $config);
+                $presetData = self::preparePreset($presetClass::get($composer), $config);
+                $config = self::mergeConfig($presetData, $config);
+
                 break;
             }
         }
@@ -89,12 +89,10 @@ final class ConfigResolver
 
     /**
      * Guesses the preset based in information from composer.
-     *
-     * @return string
      */
     public static function guess(Composer $composer): string
     {
-        foreach (self::$presets as $presetClass) {
+        foreach (self::PRESETS as $presetClass) {
             if ($presetClass::shouldBeApplied($composer)) {
                 return $presetClass::getName();
             }
@@ -116,8 +114,10 @@ final class ConfigResolver
         foreach ($replacement as $key => $value) {
             if (! array_key_exists($key, $base) && ! is_numeric($key)) {
                 $base[$key] = $replacement[$key];
+
                 continue;
             }
+
             if (is_array($value) || (array_key_exists($key, $base) && is_array($base[$key]))) {
                 $base[$key] = self::mergeConfig($base[$key], $replacement[$key]);
             } elseif (is_numeric($key)) {
@@ -136,7 +136,6 @@ final class ConfigResolver
      * Merge requirements config from console input.
      *
      * @param array<string, string|array> $config
-     * @param \Symfony\Component\Console\Input\InputInterface $input
      *
      * @return array<string, string|array>
      */
@@ -144,10 +143,11 @@ final class ConfigResolver
     {
         $requirements = Configuration::getAcceptedRequirements();
         foreach ($requirements as $requirement) {
-            if ($input->hasParameterOption('--'.$requirement)) {
+            if ($input->hasParameterOption('--' . $requirement)) {
                 $config['requirements'][$requirement] = $input->getOption($requirement);
             }
         }
+
         return $config;
     }
 
@@ -159,8 +159,10 @@ final class ConfigResolver
         if ($composerPath === null) {
             $composerPath = rtrim($path, '/') . DIRECTORY_SEPARATOR . self::COMPOSER_FILENAME;
         }
-
-        if (strpos($composerPath, self::COMPOSER_FILENAME) === false || ! file_exists($composerPath)) {
+        if (strpos($composerPath, self::COMPOSER_FILENAME) === false) {
+            return new Composer([]);
+        }
+        if (! file_exists($composerPath)) {
             return new Composer([]);
         }
 
@@ -179,5 +181,36 @@ final class ConfigResolver
         }
 
         return $config;
+    }
+
+    /**
+     * @param array<string, array|string|int> $preset
+     * @param array<string, array|string> $config
+     *
+     * @return array<string, array|int|string>
+     */
+    private static function preparePreset(array $preset, array $config): array
+    {
+        $removedRulesByPreset = [];
+        $addedRulesByConfig = [];
+
+        if (isset($preset['remove']) && is_array($preset['remove']) && $preset['remove'] !== []) {
+            array_walk_recursive($preset['remove'], static function ($value) use (&$removedRulesByPreset): void {
+                $removedRulesByPreset[] = $value;
+            });
+        }
+
+        if (isset($config['add']) && is_array($config['add']) && $config['add'] !== []) {
+            array_walk_recursive($config['add'], static function ($value) use (&$addedRulesByConfig): void {
+                $addedRulesByConfig[] = $value;
+            });
+        }
+
+        $intersectRules = array_intersect($addedRulesByConfig, $removedRulesByPreset);
+
+        // Config rules have more priority against preset rules, so we should override them.
+        $preset['remove'] = array_diff($removedRulesByPreset, $intersectRules);
+
+        return $preset;
     }
 }

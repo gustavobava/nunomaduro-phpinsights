@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace NunoMaduro\PhpInsights\Application;
 
-use Composer\Semver\Semver;
-
 /**
  * @internal
  */
 final class Composer
 {
     /** @var array<string, mixed> */
-    private $config;
+    private array $config;
 
     /**
      * Composer constructor.
@@ -26,7 +24,7 @@ final class Composer
 
     public static function fromPath(string $path): self
     {
-        return new self(json_decode((string) file_get_contents($path), true));
+        return new self(json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR));
     }
 
     /**
@@ -48,24 +46,5 @@ final class Composer
     public function getName(): string
     {
         return $this->config['name'] ?? '';
-    }
-
-    public function getPhpVersion(): string
-    {
-        return $this->getRequirements()['php'];
-    }
-
-    public function hasPhpVersion(): bool
-    {
-        return isset($this->getRequirements()['php']);
-    }
-
-    public function lowestPhpVersionIsGreaterThenOrEqualTo(string $version): bool
-    {
-        $composerVersion = $this->getPhpVersion();
-        preg_match("/\d+(\.\d+)/", $composerVersion, $matches);
-        $composerVersion = $matches[0];
-
-        return Semver::satisfies($composerVersion, $version);
     }
 }

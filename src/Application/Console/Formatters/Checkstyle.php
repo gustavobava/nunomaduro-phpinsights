@@ -11,7 +11,7 @@ use NunoMaduro\PhpInsights\Domain\DetailsComparator;
 use NunoMaduro\PhpInsights\Domain\Insights\Insight;
 use NunoMaduro\PhpInsights\Domain\Insights\InsightCollection;
 use RuntimeException;
-use Symfony\Component\Console\Input\InputInterface;
+use SimpleXMLElement;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -19,10 +19,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class Checkstyle implements Formatter
 {
-    /** @var OutputInterface */
-    private $output;
+    private OutputInterface $output;
 
-    public function __construct(InputInterface $input, OutputInterface $output)
+    public function __construct(OutputInterface $output)
     {
         $this->output = $output;
     }
@@ -30,26 +29,26 @@ final class Checkstyle implements Formatter
     /**
      * Format the result to the desired format.
      *
-     * @param \NunoMaduro\PhpInsights\Domain\Insights\InsightCollection $insightCollection
      * @param array<int, string> $metrics
      */
-    public function format(
-        InsightCollection $insightCollection,
-        array $metrics
-    ): void {
+    public function format(InsightCollection $insightCollection, array $metrics): void
+    {
         if (! extension_loaded('simplexml')) {
             throw new RuntimeException('To use checkstyle format install simplexml extension.');
         }
-        $checkstyle = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><checkstyle/>');
+
+        $checkstyle = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><checkstyle/>');
         $detailsComparator = new DetailsComparator();
 
         foreach ($metrics as $metricClass) {
             /** @var Insight $insight */
             foreach ($insightCollection->allFrom(new $metricClass()) as $insight) {
-                if (! $insight instanceof HasDetails || ! $insight->hasIssue()) {
+                if (! $insight instanceof HasDetails) {
                     continue;
                 }
-
+                if (! $insight->hasIssue()) {
+                    continue;
+                }
                 $details = $insight->getDetails();
                 usort($details, $detailsComparator);
 
@@ -57,7 +56,7 @@ final class Checkstyle implements Formatter
                 foreach ($details as $detail) {
                     $fileName = PathShortener::fileName($detail, $insightCollection->getCollector()->getCommonPath());
 
-                    if (isset($checkstyle->file) && (string) $checkstyle->file->attributes()['name'] === $fileName) {
+                    if (property_exists($checkstyle, 'file') && $checkstyle->file !== null && (string) $checkstyle->file->attributes()['name'] === $fileName) {
                         $file = $checkstyle->file;
                     } else {
                         $file = $checkstyle->addChild('file');
@@ -66,9 +65,9 @@ final class Checkstyle implements Formatter
 
                     $error = $file->addChild('error');
                     $error->addAttribute('severity', 'error');
-                    $error->addAttribute('source', $insight->getTitle());
+                    $error->addAttribute('source', str_replace('\\', '.', $insight->getInsightClass()));
                     $error->addAttribute('line', $detail->hasLine() ? (string) $detail->getLine() : '');
-                    $error->addAttribute('message', $detail->hasMessage() ? $detail->getMessage() : '');
+                    $error->addAttribute('message', $detail->hasMessage() ? $detail->getMessage() : $insight->getTitle());
                 }
             }
         }

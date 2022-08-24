@@ -1,6 +1,6 @@
 # Code
 
-The following insights are organised in differents metrics :
+The following insights are organised in different metrics :
 
 * `NunoMaduro\PhpInsights\Domain\Metrics\Code\Classes` <Badge text="Code\Classes" type="warn" vertical="middle"/>
 * `NunoMaduro\PhpInsights\Domain\Metrics\Code\Code` <Badge text="Code\Code" type="warn" vertical="middle"/>
@@ -13,7 +13,8 @@ The following insights are organised in differents metrics :
 
 This sniff disallows public properties.
 
-**Insight Class**: `ObjectCalisthenics\Sniffs\Classes\ForbiddenPublicPropertySniff`
+**Insight Class v1.0**: `ObjectCalisthenics\Sniffs\Classes\ForbiddenPublicPropertySniff`
+**Insight Class v2.0**: `SlevomatCodingStandard\Sniffs\Classes\ForbiddenPublicPropertySniff`
 
 ## Unused private elements <Badge text="^1.0"/> <Badge text="Code\Classes" type="warn"/>
 
@@ -39,13 +40,13 @@ This sniff verifies that properties are declared correctly.
 
 **Insight Class**: `PHP_CodeSniffer\Standards\PSR2\Sniffs\Classes\PropertyDeclarationSniff`
 
-## Class constant visibilty <Badge text="^1.0"/> <Badge text="Code\Classes" type="warn"/>
+## Class constant visibility <Badge text="^1.0"/> <Badge text="Code\Classes" type="warn"/>
 
 This sniff requires declaring visibility for all class constants.
 
 **Insight Class**: `SlevomatCodingStandard\Sniffs\Classes\ClassConstantVisibilitySniff`
 
-## Disallow Late static Bindig for constants <Badge text="^1.0"/> <Badge text="Code\Classes" type="warn"/>
+## Disallow Late static Binding for constants <Badge text="^1.0"/> <Badge text="Code\Classes" type="warn"/>
 
 This sniff disallows late static binding for constants.
 
@@ -93,7 +94,7 @@ This sniff ensures all language constructs contain a single space between themse
 
 **Insight Class**: `PHP_CodeSniffer\Standards\Squiz\Sniffs\WhiteSpace\LanguageConstructSpacingSniff`
 
-## Element name minimal length <Badge text="^1.0"/> <Badge text="Code\Code" type="warn"/> <Badge text="configurable"/>
+## Element name minimal length <Badge text=">=1.0 <2.0"/> <Badge text="Code\Code" type="warn"/> <Badge text="configurable"/>
 
 **Insight Class**: `ObjectCalisthenics\Sniffs\NamingConventions\ElementNameMinimalLengthSniff`
 
@@ -108,7 +109,7 @@ This sniff ensures all language constructs contain a single space between themse
 ```
 </details>
 
-## Max nesting level <Badge text="^1.0"/> <Badge text="Code\Code" type="warn"/> <Badge text="configurable"/>
+## Max nesting level <Badge text=">=1.0 <2.0"/> <Badge text="Code\Code" type="warn"/> <Badge text="configurable"/>
 
 **Insight Class**: `ObjectCalisthenics\Sniffs\Metrics\MaxNestingLevelSniff`
 
@@ -191,7 +192,7 @@ This sniff detects statement conditions that are only set to one of the constant
 
 ## Useless Overriding Method <Badge text="^1.0"/> <Badge text="Code\Code" type="warn"/>
 
-This sniff detects the use of methods that only call their parent classes's method with the same name and arguments.
+This sniff detects the use of methods that only call their parent class's method with the same name and arguments.
 These methods are not required.
 
 **Insight Class**: `PHP_CodeSniffer\Standards\Generic\Sniffs\CodeAnalysis\UselessOverridingMethodSniff`
@@ -222,7 +223,7 @@ This sniff discourages the use of the PHP `goto` language construct.
 
 ## No silenced errors <Badge text="^1.0"/> <Badge text="Code\Code" type="warn"/>
 
-This sniff detects when any code prefixed with an asperand is encountered.
+This sniff detects when any code prefixed with an ampersand is encountered.
 
 **Insight Class**: `PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\NoSilencedErrorsSniff`
 
@@ -388,7 +389,7 @@ This sniff looks for duplicate assignments to a variable.
 
 ## Nullable type for null default value <Badge text="^1.0"/> <Badge text="Code\Comments" type="warn"/>
 
-This sniff checks whether the nullablity `?` symbol is present before each nullable and optional parameter (which are marked as `= null`)
+This sniff checks whether the nullability `?` symbol is present before each nullable and optional parameter (which are marked as `= null`)
 
 **Insight Class**: `SlevomatCodingStandard\Sniffs\TypeHints\NullableTypeForNullDefaultValueSniff`
 
@@ -470,7 +471,7 @@ This sniff reports invalid inline phpDocs with `@var`.
 
 This sniff disallows useless doc comments. If the native method declaration contains everything and the phpDoc does not add anything useful, it's reported as useless.
 
-Some typehints can be enforced to be specified with a contained type, with `traversableTypeHints`. See the [official explanation](https://github.com/slevomat/coding-standard#slevomatcodingstandardcommentinguselessfunctiondoccomment-)
+Some type hints can be enforced to be specified with a contained type, with `traversableTypeHints`. See the [official explanation](https://github.com/slevomat/coding-standard#slevomatcodingstandardcommentinguselessfunctiondoccomment-)
 
 **Insight Class**: `SlevomatCodingStandard\Sniffs\Commenting\UselessFunctionDocCommentSniff`
 
@@ -498,8 +499,8 @@ This sniff disallows usage of the "mixed" type hint in phpDocs.
 
 ## Long type hints <Badge text="^1.0"/> <Badge text="Code\Comments" type="warn"/>
 
-This sniff enforces using shorthand scalar typehint variants in phpDocs: `int` instead of `integer` and `bool` instead of `boolean`.
-This is for consistency with native scalar typehints which also allow shorthand variants only.
+This sniff enforces using shorthand scalar type hint variants in phpDocs: `int` instead of `integer` and `bool` instead of `boolean`.
+This is for consistency with native scalar type hints which also allow shorthand variants only.
 
 **Insight Class**: `SlevomatCodingStandard\Sniffs\TypeHints\LongTypeHintsSniff`
 
@@ -557,7 +558,7 @@ This sniff ensures that variables are not passed by reference when calling a fun
 
 **Insight Class**: `PHP_CodeSniffer\Standards\Generic\Sniffs\Functions\CallTimePassByReferenceSniff`
 
-## Deperacted functions <Badge text="^1.0"/> <Badge text="Code\Functions" type="warn"/>
+## Deprecated functions <Badge text="^1.0"/> <Badge text="Code\Functions" type="warn"/>
 
 This sniff discourages the use of deprecated PHP functions.
 
@@ -565,7 +566,7 @@ This sniff discourages the use of deprecated PHP functions.
 
 ## Nullable type declaration <Badge text="^1.0"/> <Badge text="Code\Functions" type="warn"/>
 
-This sniff verifies that nullable typehints are lacking superfluous whitespace (e.g. `?int`).
+This sniff verifies that nullable type hints are lacking superfluous whitespace (e.g. `?int`).
 
 **Insight Class**: `PHP_CodeSniffer\Standards\PSR12\Sniffs\Functions\NullableTypeDeclarationSniff`
 
@@ -783,7 +784,7 @@ There must be a comment when fall-through is intentional in a non-empty case bod
 
 ## Phpdoc scalar <Badge text="^1.10"/> <Badge text="Code\Comments" type="warn"/> <Badge text="configurable"/>
 
-Scalar types should always be written in the same form. 
+Scalar types should always be written in the same form.
 `int` not `integer`, `bool` not `boolean`, `float` not `real` or `double`.
 
 **Insight Class**: `PhpCsFixer\Fixer\Phpdoc\PhpdocScalarFixer`

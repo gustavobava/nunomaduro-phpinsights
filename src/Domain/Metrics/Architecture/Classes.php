@@ -8,15 +8,15 @@ use NunoMaduro\PhpInsights\Domain\Collector;
 use NunoMaduro\PhpInsights\Domain\Contracts\HasInsights;
 use NunoMaduro\PhpInsights\Domain\Contracts\HasValue;
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenNormalClasses;
-use ObjectCalisthenics\Sniffs\Files\ClassTraitAndInterfaceLengthSniff;
-use ObjectCalisthenics\Sniffs\Metrics\MethodPerClassLimitSniff;
-use ObjectCalisthenics\Sniffs\Metrics\PropertyPerClassLimitSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\OneClassPerFileSniff;
 use PHP_CodeSniffer\Standards\PSR1\Sniffs\Classes\ClassDeclarationSniff;
 use PHP_CodeSniffer\Standards\Squiz\Sniffs\Classes\ValidClassNameSniff;
 use SlevomatCodingStandard\Sniffs\Classes\SuperfluousAbstractClassNamingSniff;
 use SlevomatCodingStandard\Sniffs\Classes\SuperfluousInterfaceNamingSniff;
 
+/**
+ * @see \Tests\Feature\Laravel\ClassesTest
+ */
 final class Classes implements HasValue, HasInsights
 {
     public function getValue(Collector $collector): string
@@ -33,9 +33,6 @@ final class Classes implements HasValue, HasInsights
             ForbiddenNormalClasses::class,
             ValidClassNameSniff::class,
             ClassDeclarationSniff::class,
-            ClassTraitAndInterfaceLengthSniff::class,
-            MethodPerClassLimitSniff::class,
-            PropertyPerClassLimitSniff::class,
             OneClassPerFileSniff::class,
             SuperfluousInterfaceNamingSniff::class,
             SuperfluousAbstractClassNamingSniff::class,
@@ -44,6 +41,6 @@ final class Classes implements HasValue, HasInsights
 
     public function getPercentage(Collector $collector): float
     {
-        return count($collector->getFiles()) > 0 ? $collector->getClasses() / count($collector->getFiles()) * 100 : 0;
+        return $collector->getFiles() !== [] ? $collector->getClasses() / count($collector->getFiles()) * 100 : 0;
     }
 }

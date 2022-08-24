@@ -24,6 +24,11 @@ use Tests\Fakes\FakeInput;
 abstract class TestCase extends BaseTestCase
 {
     /**
+     * @var array<string>
+     */
+    private array $initialArgv;
+
+    /**
      * Call protected/private method of a class.
      *
      * @param  class-string  $class Instantiated object that we will run method on
@@ -105,7 +110,7 @@ abstract class TestCase extends BaseTestCase
 
         return $insightCollectionFactory->get(
             MetricsFinder::find(),
-            new NullOutput
+            new NullOutput()
         );
     }
 
@@ -141,11 +146,12 @@ abstract class TestCase extends BaseTestCase
         $ruleset->ruleset = [
             "PhpInsights.Sniffs.{$ruleName}" => [
                 'properties' => $properties,
-            ]
+            ],
         ];
 
         $ruleset->registerSniffs($sniffs, [], []);
         $ruleset->populateTokenListeners();
+
         return new LocalFile($fixtureFile, $ruleset, $config);
     }
 
@@ -162,4 +168,21 @@ abstract class TestCase extends BaseTestCase
 
         return $filename === false ? '' : $filename;
     }
+
+
+    protected function setUp(): void
+    {
+        // Replace temporarily current binary by phpinsights one, to execute subprocess
+        $this->initialArgv = $_SERVER['argv'];
+        $_SERVER['argv'] = [getcwd() . '/bin/phpinsights'];
+
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        $_SERVER['argv'] = $this->initialArgv;
+        parent::tearDown();
+    }
+
 }

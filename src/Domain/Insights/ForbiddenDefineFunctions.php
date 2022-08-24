@@ -11,7 +11,7 @@ final class ForbiddenDefineFunctions extends Insight implements HasDetails
 {
     public function hasIssue(): bool
     {
-        return count($this->getDetails()) > 0;
+        return $this->getDetails() !== [];
     }
 
     public function getTitle(): string
@@ -31,6 +31,7 @@ final class ForbiddenDefineFunctions extends Insight implements HasDetails
             if ($this->shouldSkipFile($file)) {
                 continue;
             }
+
             foreach ($namedFunctions as $key => $namedFunction) {
                 $number = $key + 1;
                 $details[] = Details::make()

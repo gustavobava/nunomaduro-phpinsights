@@ -14,21 +14,23 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 final class FileFactory
 {
-    /** @var \PHP_CodeSniffer\Ruleset */
-    private $ruleset;
+    private Ruleset $ruleset;
 
-    /** @var \PHP_CodeSniffer\Config */
-    private $config;
+    private Config $config;
 
     public function __construct()
     {
         $config = new Config([], false);
+        // disable loading custom ruleset
+        $config->restoreDefaults();
         $config->__set('tabWidth', 4);
         $config->__set('annotations', false);
         $config->__set('encoding', 'UTF-8');
+        // Include only 1 sniff, they are register later
+        $config->__set('sniffs', ['Generic.Files.LineEndings']);
 
         $this->config = $config;
-        $this->ruleset = new Ruleset($config);
+        $this->ruleset = new Ruleset($this->config);
     }
 
     public function createFromFileInfo(SplFileInfo $smartFileInfo): File

@@ -1,6 +1,6 @@
 # Get started
 
-> **Requires:** [PHP 7.2+](https://php.net/releases/)
+> **Requires:** [PHP 7.4+](https://php.net/releases/)
 
 First, install PHP Insights via the `Composer` package manager:
 ```bash
@@ -28,7 +28,10 @@ Then, use the `insights` Artisan command:
 php artisan insights
 ```
 
-> Note for Laravel 7 users : phpinsights requires [PHP 7.3+](https://php.net/releases/), and `PHPUnit 9.0+`.
+> Note for Laravel 7 users: phpinsights requires [PHP 7.3+](https://php.net/releases/), and `PHPUnit 9.0+`. For upgrading PHPUnit, you can use following command:
+ ```bash
+ composer require --dev phpunit/phpunit:^9.0 --update-with-dependencies
+ ```
 
 ## Within Lumen
 
@@ -55,7 +58,7 @@ php artisan insights
 
 You can also use `phpinsights` via Docker:
 ```bash
-docker run -it --rm -v $(pwd):/app nunomaduro/phpinsights
+docker run -it --rm -v "$(pwd):/app" nunomaduro/phpinsights
 ```
 
 ## Analyse a sub-directory or a specific file
@@ -81,7 +84,7 @@ php artisan insights path/to/analyse
 Some Insights support automatic fixing. 
 To fix your code automatically, two way are possibles: 
 
-* Add `--fix` option to your command. The output will be the classical output, with a resume of all issues fixed.
+* Add `--fix` option to your command. The output will be the classical output, with a summary of all issues fixed.
 * Or launch `phpinsights fix [directory]`
 
 ```bash
@@ -169,4 +172,24 @@ If you have trouble while requiring `phpinsights` with composer, try install it 
 composer require --dev bamarni/composer-bin-plugin
 composer bin phpinsights require nunomaduro/phpinsights
 ./vendor/bin/phpinsights
+```
+
+## Flush cache results <Badge text="^2.0"/>
+
+Between 2 analysis, issues are cached. 
+PHPInsights is smart enough to invalidate cache when it detect changes in your code, but you may completely flush cache before analysis by adding `--flush-cache` flag.
+
+## Configure diff <Badge text="^2.0"/>
+
+Some insights display a diff output.
+If you want more context on the diff, configure it in the `phpinsights.php` file:
+
+```php
+<?php
+
+return [
+    // ...
+    'diff_context' => 3,
+    // ...
+];
 ```

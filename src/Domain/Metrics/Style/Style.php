@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NunoMaduro\PhpInsights\Domain\Metrics\Style;
 
 use NunoMaduro\PhpInsights\Domain\Contracts\HasInsights;
+use NunoMaduro\PhpInsights\Domain\Insights\SyntaxCheck;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Arrays\DisallowLongArraySyntaxSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\ByteOrderMarkSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineEndingsSniff;
@@ -21,7 +22,6 @@ use PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\LowerCaseConstantSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\LowerCaseKeywordSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\LowerCaseTypeSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\SAPIUsageSniff;
-use PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\SyntaxSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\VersionControl\GitMergeConflictSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\WhiteSpace\ArbitraryParenthesesSpacingSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\WhiteSpace\DisallowTabIndentSniff;
@@ -63,7 +63,7 @@ use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
 use PhpCsFixer\Fixer\Operator\StandardizeNotEqualsFixer;
 use PhpCsFixer\Fixer\Phpdoc\AlignMultilineCommentFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocIndentFixer;
-use PhpCsFixer\Fixer\Phpdoc\PhpdocInlineTagFixer;
+use PhpCsFixer\Fixer\Phpdoc\PhpdocInlineTagNormalizerFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocTrimFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocVarAnnotationCorrectOrderFixer;
 use PhpCsFixer\Fixer\PhpTag\FullOpeningTagFixer;
@@ -97,6 +97,7 @@ final class Style implements HasInsights
     public function getInsights(): array
     {
         return [
+            SyntaxCheck::class,
             ClosingTagSniff::class,
             EndFileNewlineSniff::class,
             SideEffectsSniff::class,
@@ -123,7 +124,6 @@ final class Style implements HasInsights
             LowerCaseKeywordSniff::class,
             LowerCaseTypeSniff::class,
             SAPIUsageSniff::class,
-            SyntaxSniff::class,
             TrailingArrayCommaSniff::class,
             ArbitraryParenthesesSpacingSniff::class,
             DisallowTabIndentSniff::class,
@@ -181,7 +181,7 @@ final class Style implements HasInsights
             SingleQuoteFixer::class,
             StandardizeNotEqualsFixer::class,
             PhpdocIndentFixer::class,
-            PhpdocInlineTagFixer::class,
+            PhpdocInlineTagNormalizerFixer::class,
             PhpdocTrimFixer::class,
             PhpdocVarAnnotationCorrectOrderFixer::class,
             SingleClassElementPerStatementFixer::class,

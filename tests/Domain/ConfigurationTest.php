@@ -9,6 +9,7 @@ use NunoMaduro\PhpInsights\Domain\Exceptions\InvalidConfiguration;
 use NunoMaduro\PhpInsights\Domain\LinkFormatter\FileLinkFormatter;
 use NunoMaduro\PhpInsights\Domain\LinkFormatter\NullFileLinkFormatter;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 final class ConfigurationTest extends TestCase
 {
@@ -56,10 +57,10 @@ final class ConfigurationTest extends TestCase
         self::assertInstanceOf(FileLinkFormatter::class, $configuration->getFileLinkFormatter());
     }
 
-    public function testWithUnknowIde(): void
+    public function testWithUnknownIde(): void
     {
         $this->expectException(InvalidConfiguration::class);
-        $this->expectExceptionMessage('Unknow IDE "notepad++"');
+        $this->expectExceptionMessage('Unknown IDE "notepad++"');
 
         $config = [
             'ide' => 'notepad++',
@@ -75,5 +76,65 @@ final class ConfigurationTest extends TestCase
 
         self::assertSame([getcwd()], $configuration->getPaths());
         self::assertStringNotContainsString('..', $configuration->getPaths()[0]);
+    }
+
+    public function testGetNumberOfThreads(): void
+    {
+        $sysCommand = 'nproc';
+
+        if (!file_exists('/usr/bin/nproc')) {
+            $sysCommand = 'sysctl -n hw.logicalcpu';
+
+            if (!file_exists('/usr/sbin/sysctl')) {
+                self::markTestSkipped('Unable to find nproc to get expected cores');
+            }
+        }
+
+        $command = Process::fromShellCommandline($sysCommand);
+        $command->run();
+        $expected = (int) $command->getOutput();
+
+        $configuration = new Configuration([]);
+        self::assertSame($expected, $configuration->getNumberOfThreads());
+    }
+
+    public function testDefineThreads(): void
+    {
+        $expected = random_int(1, mt_getrandmax());
+        $configuration = new Configuration(['threads' => $expected]);
+
+        self::assertSame($expected, $configuration->getNumberOfThreads());
+    }
+
+    public function testDefineNullForThreads(): void
+    {
+        $configuration = new Configuration(['threads' => null]);
+
+        self::assertGreaterThanOrEqual(1, $configuration->getNumberOfThreads());
+    }
+
+    /**
+     * @dataProvider invalidThreadsNumber
+     * @param int|string $invalid
+     */
+    public function testExceptionOnInvalidSetThread($invalid): void
+    {
+        $this->expectException(InvalidConfiguration::class);
+        $this->expectExceptionMessage('The option "threads" with value');
+        new Configuration(['threads' => $invalid]);
+    }
+
+    /**
+     * @return array<array<string|int|float>>
+     */
+    public function invalidThreadsNumber(): array
+    {
+        return [
+            [0],
+            [0.],
+            [-1],
+            ['0'],
+            ['2'],
+        ];
     }
 }

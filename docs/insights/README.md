@@ -1,6 +1,6 @@
 # Configure Insights
 
-The default configuration attached with `PHP Insights` is opiniated and may be not convenient for you.
+The default configuration attached with `PHP Insights` is opinionated and may be not convenient for you.
 
 Here you will learn how to configure PHPInsights for your project. 
 
@@ -66,7 +66,7 @@ For example, if you want to enable "Fully Qualified ClassName In Annotation":
 
 ```php
     'add' => [
-        \NunoMaduro\PhpInsights\Domain\Metrics\Code\Comment::class => [
+        \NunoMaduro\PhpInsights\Domain\Metrics\Code\Comments::class => [
             \SlevomatCodingStandard\Sniffs\Namespaces\FullyQualifiedClassNameInAnnotationSniff::class
         ]
     ]
@@ -124,3 +124,12 @@ For example, to remove "Unused Parameters" Insight only for some file:
     ],
 ```
 
+<Badge text="^2.0"/> For insights that come from PHP-CS-Fixer and implements `WhitespacesAwareFixerInterface`, you can also configure the indentation to respect: 
+
+```php
+    'configure' => [
+        \PhpCsFixer\Fixer\Basic\BraceFixer::class => [
+            'indent' => '  ',
+		],
+    ],
+```

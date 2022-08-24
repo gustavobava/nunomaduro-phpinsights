@@ -28,6 +28,7 @@ final class DefaultPreset implements PresetContract
                 'bower_components',
                 'node_modules',
                 'vendor',
+                'vendor-bin',
                 '.phpstorm.meta.php',
             ],
             'add' => [
@@ -51,7 +52,7 @@ final class DefaultPreset implements PresetContract
                     'ignoreUnusedValuesWhenOnlyKeysAreUsedInForeach' => true,
                 ],
                 PropertyTypeHintSniff::class => [
-                    'enableNativeTypeHint' => $composer->hasPhpVersion() ? $composer->lowestPhpVersionIsGreaterThenOrEqualTo('7.4') === true : PHP_VERSION_ID >= 70400,
+                    'enableNativeTypeHint' => PHP_VERSION_ID >= 70_400,
                 ],
             ],
         ];

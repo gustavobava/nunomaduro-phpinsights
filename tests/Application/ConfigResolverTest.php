@@ -4,38 +4,36 @@ declare(strict_types=1);
 
 namespace Tests\Application;
 
+use NunoMaduro\PhpInsights\Application\Adapters\Laravel\Preset as LaravelPreset;
 use NunoMaduro\PhpInsights\Application\Composer;
 use NunoMaduro\PhpInsights\Application\ConfigResolver;
 use NunoMaduro\PhpInsights\Domain\Exceptions\InvalidConfiguration;
 use NunoMaduro\PhpInsights\Domain\LinkFormatter\FileLinkFormatter;
-use NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Classes;
 use NunoMaduro\PhpInsights\Domain\LinkFormatter\NullFileLinkFormatter;
+use NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Classes;
 use PHPUnit\Framework\TestCase;
 use SlevomatCodingStandard\Sniffs\Commenting\DocCommentSpacingSniff;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Tests\Fakes\FakeInput;
 
 final class ConfigResolverTest extends TestCase
 {
-    /**
-     * @var string
-     */
-    private $baseFixturePath;
+    private string $baseFixturePath;
 
     public function setUp(): void
     {
         parent::setUp();
-
-        $this->baseFixturePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Fixtures' . DIRECTORY_SEPARATOR . 'ConfigResolver' . DIRECTORY_SEPARATOR;
+        $this->baseFixturePath = dirname(__DIR__) . DIRECTORY_SEPARATOR .
+            'Fixtures' . DIRECTORY_SEPARATOR . 'ConfigResolver' . DIRECTORY_SEPARATOR;
     }
 
     public function testGuessDirectoryWithoutComposer(): void
     {
         $preset = ConfigResolver::guess(new Composer([]));
+
         self::assertSame('default', $preset);
     }
 
@@ -44,6 +42,7 @@ final class ConfigResolverTest extends TestCase
         $preset = ConfigResolver::guess(
             Composer::fromPath("{$this->baseFixturePath}ComposerWithoutRequire" . DIRECTORY_SEPARATOR . 'composer.json')
         );
+
         self::assertSame('default', $preset);
     }
 
@@ -52,6 +51,7 @@ final class ConfigResolverTest extends TestCase
         $preset = ConfigResolver::guess(
             Composer::fromPath($this->baseFixturePath . 'ComposerSymfony' . DIRECTORY_SEPARATOR . 'composer.json')
         );
+
         self::assertSame('symfony', $preset);
     }
 
@@ -60,6 +60,7 @@ final class ConfigResolverTest extends TestCase
         $preset = ConfigResolver::guess(
             Composer::fromPath($this->baseFixturePath . 'ComposerLaravel' . DIRECTORY_SEPARATOR . 'composer.json')
         );
+
         self::assertSame('laravel', $preset);
     }
 
@@ -68,6 +69,7 @@ final class ConfigResolverTest extends TestCase
         $preset = ConfigResolver::guess(
             Composer::fromPath($this->baseFixturePath . 'ComposerYii' . DIRECTORY_SEPARATOR . 'composer.json')
         );
+
         self::assertSame('yii', $preset);
     }
 
@@ -76,6 +78,7 @@ final class ConfigResolverTest extends TestCase
         $preset = ConfigResolver::guess(
             Composer::fromPath($this->baseFixturePath . 'ComposerMagento2' . DIRECTORY_SEPARATOR . 'composer.json')
         );
+
         self::assertSame('magento2', $preset);
     }
 
@@ -84,7 +87,16 @@ final class ConfigResolverTest extends TestCase
         $preset = ConfigResolver::guess(
             Composer::fromPath($this->baseFixturePath . 'ComposerDrupal' . DIRECTORY_SEPARATOR . 'composer.json')
         );
+
         self::assertSame('drupal', $preset);
+    }
+
+    public function testGuessWordPress(): void
+    {
+        $preset = ConfigResolver::guess(
+            Composer::fromPath($this->baseFixturePath . 'ComposerWordPress' . DIRECTORY_SEPARATOR . 'composer.json')
+        );
+        self::assertSame('wordpress', $preset);
     }
 
     public function testResolvedConfigIsCorrectlyMerged(): void
@@ -95,9 +107,9 @@ final class ConfigResolverTest extends TestCase
             ],
             'config' => [
                 DocCommentSpacingSniff::class => [
-                    'linesCountBetweenDifferentAnnotationsTypes' => 2
-                ]
-            ]
+                    'linesCountBetweenDifferentAnnotationsTypes' => 2,
+                ],
+            ],
         ];
 
         $finalConfig = ConfigResolver::resolve(
@@ -118,7 +130,7 @@ final class ConfigResolverTest extends TestCase
 
     public function testUnknownPresetThrowException(): void
     {
-        $this->expectException(InvalidOptionsException::class);
+        $this->expectException(InvalidConfiguration::class);
 
         $config = ['preset' => 'UnknownPreset'];
 
@@ -128,7 +140,7 @@ final class ConfigResolverTest extends TestCase
         );
     }
 
-    public function testUnknowMetricAddedThrowException(): void
+    public function testUnknownMetricAddedThrowException(): void
     {
         $this->expectException(InvalidConfiguration::class);
         $this->expectExceptionMessage('Unable to use "say" class as metric in section add.');
@@ -143,7 +155,7 @@ final class ConfigResolverTest extends TestCase
     public function testKnownMetricAddedWithNonArrayValueThrowException(): void
     {
         $this->expectException(InvalidConfiguration::class);
-        $this->expectExceptionMessage('Added insights for metric "' . Classes::class. '" should be in an array.');
+        $this->expectExceptionMessage('Added insights for metric "' . Classes::class . '" should be in an array.');
 
         $config = ['add' => [Classes::class => 'hello']];
         ConfigResolver::resolve(
@@ -152,7 +164,7 @@ final class ConfigResolverTest extends TestCase
         );
     }
 
-    public function testAddUnknowClassThrowException(): void
+    public function testAddUnknownClassThrowException(): void
     {
         $this->expectException(InvalidConfiguration::class);
         $this->expectExceptionMessage('Unable to add "hello" insight, class doesn\'t exists.');
@@ -177,7 +189,7 @@ final class ConfigResolverTest extends TestCase
         self::assertNotInstanceOf(NullFileLinkFormatter::class, $config->getFileLinkFormatter());
     }
 
-    public function testResolveWithoutIde():void
+    public function testResolveWithoutIde(): void
     {
         $config = [];
 
@@ -198,10 +210,11 @@ final class ConfigResolverTest extends TestCase
 
     public function testMergeInputRequirements(): void
     {
-        $input = new ArrayInput([
+        $input = new ArrayInput(
+            [
                 '--not-whitelisted' => 1,
                 '--min-complexity' => 1,
-                '--directory=.'
+                '--directory=.',
             ],
             new InputDefinition([
                 new InputArgument('paths'),
@@ -213,7 +226,29 @@ final class ConfigResolverTest extends TestCase
 
         $config = ConfigResolver::resolve([], $input);
 
-        self::assertEquals($config->getMinComplexity(), 1);
+        self::assertEquals(1, $config->getMinComplexity());
+    }
+
+    public function testOverridePresetByConfig(): void
+    {
+        $preset = LaravelPreset::get(new Composer([]));
+        $removedRulesByPreset = (array) $preset['remove'];
+
+        $config = [
+            'preset' => 'laravel',
+            'add' => [
+                Classes::class => [
+                    $removedRulesByPreset[0],
+                ],
+            ],
+        ];
+
+        $finalConfig = ConfigResolver::resolve(
+            $config,
+            FakeInput::paths([$this->baseFixturePath . 'ComposerLaravel' . DIRECTORY_SEPARATOR . 'composer.json'])
+        );
+
+        self::assertNotContains($removedRulesByPreset[0], $finalConfig->getRemoves());
     }
 
     /**

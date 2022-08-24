@@ -20,13 +20,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * @internal
+ *
+ * @see \Tests\Domain\ConfigurationTest
  */
 final class Configuration
 {
-    /**
-     * @var array<string>
-     */
-    private static $presets = [
+    private const PRESETS = [
         DrupalPreset::class,
         LaravelPreset::class,
         SymfonyPreset::class,
@@ -35,8 +34,7 @@ final class Configuration
         DefaultPreset::class,
     ];
 
-    /** @var array<string> */
-    private static $acceptedRequirements = [
+    private const ACCEPTED_REQUIREMENTS = [
         'min-quality',
         'min-complexity',
         'min-architecture',
@@ -44,76 +42,82 @@ final class Configuration
         'disable-security-check',
     ];
 
-    /**
-     * @var string
-     */
-    private $preset = 'default';
+    private const LINKS = [
+        'textmate' => 'txmt://open?url=file://%f&line=%l',
+        'macvim' => 'mvim://open?url=file://%f&line=%l',
+        'emacs' => 'emacs://open?url=file://%f&line=%l',
+        'sublime' => 'subl://open?url=file://%f&line=%l',
+        'phpstorm' => 'phpstorm://open?file=%f&line=%l',
+        'atom' => 'atom://core/open/file?filename=%f&line=%l',
+        'vscode' => 'vscode://file/%f:%l',
+    ];
+
+    private string $preset = 'default';
 
     /**
      * List of paths to analyse.
      *
      * @var array<string>
      */
-    private $paths;
+    private array $paths;
 
-    /**
-     * @var string
-     */
-    private $commonPath;
+    private string $commonPath;
 
     /**
      * List of folder to exclude from analyse.
      *
      * @var array<string>
      */
-    private $exclude;
+    private array $exclude;
 
     /**
      * List of insights added by metrics.
      *
      * @var array<string, array<string>>
      */
-    private $add;
+    private array $add;
 
     /**
      * List of insights class to remove.
      *
      * @var array<string>
      */
-    private $remove;
+    private array $remove;
 
     /**
      * List of requirements.
      *
      * @var array<string>
      */
-    private $requirements;
+    private array $requirements;
 
     /**
      * List of custom configuration by insight.
      *
      * @var array<string, array<string, string|int|array>>
      */
-    private $config;
+    private array $config;
 
-    /**
-     * @var FileLinkFormatterContract
-     */
-    private $fileLinkFormatter;
-    /**
-     * @var bool
-     */
-    private $fix;
+    private FileLinkFormatterContract $fileLinkFormatter;
+
+    private bool $fix;
+
+    private string $cacheKey;
+
+    private int $threads;
+
+    private int $diffContext;
 
     /**
      * Configuration constructor.
      *
-     * @param array<string, string|array|null> $config
+     * @param array<string, string|int|array|null> $config
      */
     public function __construct(array $config)
     {
         $this->fileLinkFormatter = new NullFileLinkFormatter();
         $this->resolveConfig($config);
+        $this->cacheKey = md5(\json_encode($config, JSON_THROW_ON_ERROR));
     }
 
     /**
@@ -121,7 +125,7 @@ final class Configuration
      */
     public static function getAcceptedRequirements(): array
     {
-        return self::$acceptedRequirements;
+        return self::ACCEPTED_REQUIREMENTS;
     }
 
     /**
@@ -133,15 +137,11 @@ final class Configuration
     }
 
     /**
-     * @param string $metric
-     *
      * @return array<string>
      */
     public function getAddedInsightsByMetric(string $metric): array
     {
-        return array_key_exists($metric, $this->add)
-            ? $this->add[$metric]
-            : [];
+        return $this->add[$metric] ?? [];
     }
 
     /**
@@ -153,8 +153,6 @@ final class Configuration
     }
 
     /**
-     * @param string $insight
-     *
      * @return array<string, string|int|array>
      */
     public function getConfigForInsight(string $insight): array
@@ -196,49 +194,31 @@ final class Configuration
         return $this->preset;
     }
 
-    /**
-     * @return float
-     */
     public function getMinQuality(): float
     {
         return (float) ($this->requirements['min-quality'] ?? 0);
     }
 
-    /**
-     * @return float
-     */
     public function getMinComplexity(): float
     {
         return (float) ($this->requirements['min-complexity'] ?? 0);
     }
 
-    /**
-     * @return float
-     */
     public function getMinArchitecture(): float
     {
         return (float) ($this->requirements['min-architecture'] ?? 0);
     }
 
-    /**
-     * @return float
-     */
     public function getMinStyle(): float
     {
         return (float) ($this->requirements['min-style'] ?? 0);
     }
 
-    /**
-     * @return bool
-     */
     public function isSecurityCheckDisabled(): bool
     {
         return (bool) ($this->requirements['disable-security-check'] ?? false);
     }
 
-    /**
-     * @return FileLinkFormatterContract
-     */
     public function getFileLinkFormatter(): FileLinkFormatterContract
     {
         return $this->fileLinkFormatter;
@@ -249,8 +229,23 @@ final class Configuration
         return $this->fix;
     }
 
+    public function getCacheKey(): string
+    {
+        return $this->cacheKey;
+    }
+
+    public function getNumberOfThreads(): int
+    {
+        return $this->threads;
+    }
+
+    public function getDiffContext(): int
+    {
+        return $this->diffContext;
+    }
+
     /**
-     * @param array<string, string|array|null> $config
+     * @param array<string, string|int|array|null> $config
      */
     private function resolveConfig(array $config): void
     {
@@ -265,16 +260,29 @@ final class Configuration
             'remove' => [],
             'config' => [],
             'fix' => false,
+            'diff_context' => 1,
         ]);
 
         $resolver->setDefined('ide');
-        $resolver->setAllowedValues('preset', array_map(static function (string $presetClass) {
-            return $presetClass::getName();
-        }, self::$presets));
+        $resolver->setDefined('threads');
+        $resolver->setAllowedValues(
+            'preset',
+            array_map(static fn (string $presetClass) => $presetClass::getName(), self::PRESETS)
+        );
+
         $resolver->setAllowedValues('add', $this->validateAddedInsight());
         $resolver->setAllowedValues('config', $this->validateConfigInsights());
         $resolver->setAllowedValues('requirements', $this->validateRequirements());
-        $config = $resolver->resolve($config);
+        $resolver->setAllowedTypes('threads', ['null', 'int']);
+        $resolver->setAllowedTypes('diff_context', 'int');
+        $resolver->setAllowedValues('diff_context', static fn ($value) => $value >= 0);
+        $resolver->setAllowedValues('threads', static fn ($value) => $value === null || $value >= 1);
+
+        try {
+            $config = $resolver->resolve($config);
+        } catch (\Throwable $throwable) {
+            throw new InvalidConfiguration($throwable->getMessage(), $throwable->getCode(), $throwable);
+        }
 
         $this->preset = $config['preset'];
 
@@ -292,21 +300,23 @@ final class Configuration
         $this->config = $config['config'];
         $this->requirements = $config['requirements'];
         $this->fix = $config['fix'];
+        $this->diffContext = $config['diff_context'];
 
-        if (
-            array_key_exists('ide', $config)
+        if (array_key_exists('ide', $config)
             && is_string($config['ide'])
             && $config['ide'] !== ''
         ) {
-            $this->fileLinkFormatter = $this->resolveIde((string) $config['ide']);
+            $this->fileLinkFormatter = $this->resolveIde($config['ide']);
         }
+        $this->threads = $config['threads'] ?? $this->getNumberOfCore();
     }
 
-    private function validateAddedInsight(): \Closure
+    private function validateAddedInsight(): Closure
     {
         return static function ($values): bool {
             foreach ($values as $metric => $insights) {
                 if (! class_exists($metric) ||
+                    class_implements($metric) === false ||
                     ! in_array(Metric::class, class_implements($metric), true)
                 ) {
                     throw new InvalidConfiguration(sprintf(
@@ -314,7 +324,8 @@ final class Configuration
                         $metric
                     ));
                 }
-                if (! is_array($insights)) {
+
+                if (! \is_array($insights)) {
                     throw new InvalidConfiguration(sprintf(
                         'Added insights for metric "%s" should be in an array.',
                         $metric
@@ -330,11 +341,12 @@ final class Configuration
                     }
                 }
             }
+
             return true;
         };
     }
 
-    private function validateConfigInsights(): \Closure
+    private function validateConfigInsights(): Closure
     {
         return static function ($values): bool {
             foreach (array_keys($values) as $insight) {
@@ -345,32 +357,23 @@ final class Configuration
                     ));
                 }
             }
+
             return true;
         };
     }
 
     private function resolveIde(string $ide): FileLinkFormatterContract
     {
-        $links = [
-            'textmate' => 'txmt://open?url=file://%f&line=%l',
-            'macvim' => 'mvim://open?url=file://%f&line=%l',
-            'emacs' => 'emacs://open?url=file://%f&line=%l',
-            'sublime' => 'subl://open?url=file://%f&line=%l',
-            'phpstorm' => 'phpstorm://open?file=%f&line=%l',
-            'atom' => 'atom://core/open/file?filename=%f&line=%l',
-            'vscode' => 'vscode://file/%f:%l',
-        ];
-
-        if (isset($links[$ide]) === false &&
-            mb_strpos((string) $ide, '://') === false) {
+        if (! isset(self::LINKS[$ide]) &&
+            mb_strpos($ide, '://') === false) {
             throw new InvalidConfiguration(sprintf(
-                'Unknow IDE "%s". Try one in this list [%s] or provide pattern link handler',
+                'Unknown IDE "%s". Try one in this list [%s] or provide pattern link handler',
                 $ide,
-                implode(', ', array_keys($links))
+                implode(', ', array_keys(self::LINKS))
             ));
         }
 
-        $fileFormatterPattern = $links[$ide] ?? $ide;
+        $fileFormatterPattern = self::LINKS[$ide] ?? $ide;
 
         return new FileLinkFormatter($fileFormatterPattern);
     }
@@ -382,6 +385,7 @@ final class Configuration
                 array_keys($values),
                 self::getAcceptedRequirements()
             );
+
             if ($invalidValues !== []) {
                 throw new InvalidConfiguration(sprintf(
                     'Unknown requirements [%s], valid values are [%s].',
@@ -389,7 +393,45 @@ final class Configuration
                     implode(', ', self::getAcceptedRequirements())
                 ));
             }
+
             return true;
         };
+    }
+
+    /**
+     * @see https://github.com/phpstan/phpstan-src/commit/9124c66dcc55a222e21b1717ba5f60771f7dda92
+     */
+    private function getNumberOfCore(): int
+    {
+        $cores = 2;
+        if (is_file('/proc/cpuinfo')) {
+            // Linux (and potentially Windows with linux sub systems)
+            $cpuinfo = file_get_contents('/proc/cpuinfo');
+            if ($cpuinfo !== false) {
+                preg_match_all('/^processor/m', $cpuinfo, $matches);
+                return is_countable($matches[0]) ? \count($matches[0]) : 0;
+            }
+        }
+
+        if (\DIRECTORY_SEPARATOR === '\\') {
+            // Windows
+            $process = @popen('wmic cpu get NumberOfLogicalProcessors', 'rb');
+            if ($process !== false) {
+                fgets($process);
+                $cores = (int) fgets($process);
+                pclose($process);
+            }
+
+            return $cores;
+        }
+
+        $process = @\popen('sysctl -n hw.ncpu', 'rb');
+        if ($process !== false) {
+            // *nix (Linux, BSD and Mac)
+            $cores = (int) fgets($process);
+            pclose($process);
+        }
+
+        return $cores;
     }
 }

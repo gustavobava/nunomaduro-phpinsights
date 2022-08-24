@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace NunoMaduro\PhpInsights\Domain;
 
-use NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerLockMustBeFresh;
-use NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerMustBeValid;
-use NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerMustContainName;
-use NunoMaduro\PhpInsights\Domain\Insights\Composer\ComposerMustExist;
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenSecurityIssues;
 
 /**
@@ -17,8 +13,10 @@ final class Kernel
 {
     /**
      * The app version.
+     *
+     * @noRector Rector\DeadCode\Rector\ClassConst\RemoveUnusedClassConstantRector
      */
-    public const VERSION = 'v1.14.0';
+    public const VERSION = 'v2.2.0';
 
     /**
      * Bootstraps the usage of the package.
@@ -27,14 +25,14 @@ final class Kernel
      */
     public static function bootstrap(): void
     {
-        /**
+        /*
          * Includes PHP Codesniffer's autoload.
          */
         include_once file_exists(__DIR__ . '/../../vendor/squizlabs/php_codesniffer/autoload.php')
             ? __DIR__ . '/../../vendor/squizlabs/php_codesniffer/autoload.php'
             : __DIR__ . '/../../../../../vendor/squizlabs/php_codesniffer/autoload.php';
 
-        /**
+        /*
          * Defines PHP Codesniffer's needed constants.
          */
         if (! defined('PHP_CODESNIFFER_CBF')) {
@@ -44,6 +42,13 @@ final class Kernel
         if (! defined('PHP_CODESNIFFER_VERBOSITY')) {
             define('PHP_CODESNIFFER_VERBOSITY', 0);
         }
+
+        /**
+         * Require Tokens utils From PHP Codesniffer.
+         */
+        require_once file_exists(__DIR__ . '/../../vendor/squizlabs/php_codesniffer/src/Util/Tokens.php')
+            ? __DIR__ . '/../../vendor/squizlabs/php_codesniffer/src/Util/Tokens.php'
+            : __DIR__ . '/../../../../../vendor/squizlabs/php_codesniffer/src/Util/Tokens.php';
     }
 
     /**
@@ -68,10 +73,6 @@ final class Kernel
     public static function getGlobalInsights(): array
     {
         return [
-            ComposerMustBeValid::class,
-            ComposerLockMustBeFresh::class,
-            ComposerMustContainName::class,
-            ComposerMustExist::class,
             ForbiddenSecurityIssues::class,
         ];
     }
